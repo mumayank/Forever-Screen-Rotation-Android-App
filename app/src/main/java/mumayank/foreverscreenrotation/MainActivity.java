@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
                             WAITING_TIME * MILLISECONDS_IN_ONE_SECOND
                     );
 
-                    nextRotation();
                 }
             }
         });
