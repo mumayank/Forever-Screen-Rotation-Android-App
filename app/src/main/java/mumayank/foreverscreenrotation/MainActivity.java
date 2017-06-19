@@ -1,5 +1,6 @@
 package mumayank.foreverscreenrotation;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +14,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String STRING_ROTATIONS = "No. of total rotations: ";
     private static final String STRING_DURATION = "Duration between each rotation (in s): ";
+    private static final String BUNDLE_DATA = "bundleData";
     private static final int ROTATIONS_MAX = 48;
     private static final int ROTATIONS_DEFAULT = 24;
     private static final int DURATION_MAX = 20;
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private int duration = 0;
     private SeekBar seekBarRotations;
     private SeekBar seekBarDuration;
+    private boolean isButtonClicked;
 
 
     @Override
@@ -35,30 +38,57 @@ public class MainActivity extends AppCompatActivity {
         disableAutoRotation();
         setupSeekBars();
 
-        findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                rotationsRemaining = seekBarRotations.getProgress();
-                duration = seekBarDuration.getProgress();
+        if (savedInstanceState != null) {
+            isButtonClicked = savedInstanceState.getBoolean(BUNDLE_DATA);
+        }
 
-                if (rotationsRemaining == 0 || duration == 0) {
-                    Toast.makeText(MainActivity.this, "Please select value > 0", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Beginning in " + WAITING_TIME +" seconds\n\nSwitch to your app.", Toast.LENGTH_SHORT).show();
+        if (isButtonClicked) {
+            findViewById(R.id.button).setEnabled(false);
+        } else {
+            findViewById(R.id.button).setEnabled(true);
 
-                    new java.util.Timer().schedule(
-                            new java.util.TimerTask() {
-                                @Override
-                                public void run() {
-                                    nextRotation();
-                                }
-                            },
-                            WAITING_TIME * MILLISECONDS_IN_ONE_SECOND
-                    );
+            findViewById(R.id.button).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    rotationsRemaining = seekBarRotations.getProgress();
+                    duration = seekBarDuration.getProgress();
 
+                    if (rotationsRemaining == 0 || duration == 0) {
+                        Toast.makeText(MainActivity.this, "Please select value > 0", Toast.LENGTH_SHORT).show();
+                    } else {
+                        findViewById(R.id.button).setEnabled(false);
+                        isButtonClicked = true;
+
+                        Toast.makeText(MainActivity.this, "Beginning in " + WAITING_TIME +" seconds\n\nSwitch to your app.", Toast.LENGTH_SHORT).show();
+
+                        new java.util.Timer().schedule(
+                                new java.util.TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        MainActivity.this.runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                Toast.makeText(MainActivity.this, "BEGIN", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+
+                                        nextRotation();
+                                    }
+                                },
+                                WAITING_TIME * MILLISECONDS_IN_ONE_SECOND
+                        );
+
+                    }
                 }
-            }
-        });
+            });
+        }
+
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(BUNDLE_DATA, isButtonClicked);
     }
 
     private void disableAutoRotation() {
@@ -137,6 +167,21 @@ public class MainActivity extends AppCompatActivity {
 
                         if (rotationsRemaining > 0) {
                             nextRotation();
+                        } else {
+                            Settings.System.putInt(
+                                    getContentResolver(),
+                                    Settings.System.USER_ROTATION,
+                                    Surface.ROTATION_0
+                            );
+
+                            MainActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(MainActivity.this, "FINISHED", Toast.LENGTH_SHORT).show();
+                                    MainActivity.this.startActivity(new Intent(MainActivity.this, MainActivity.class));
+                                    MainActivity.this.finish();
+                                }
+                            });
                         }
                     }
                 },
