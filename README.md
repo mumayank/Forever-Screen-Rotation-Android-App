@@ -1,3 +1,3 @@
-# Forever-Screen-Rotation-Android-App
+# For objective, functionality, and APK direct download, go here: 
 
-Read objective, functionality, and APK direct download, go here: https://medium.com/@mumayank/screen-rotation-stress-test-app-for-your-andorid-app-a5dd2dfe7ab9
+https://medium.com/@mumayank/screen-rotation-stress-test-app-for-your-andorid-app-a5dd2dfe7ab9
